@@ -1,20 +1,24 @@
--- [[ AETHER SCRIPT V1.0 FIXED FULL ]] --
+-- [[ AETHER SCRIPT V1.0 ULTIMATE RGB ]] --
 -- Developer: Farel Destroyer
 
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 
--- [[ 1. WINDOW SETUP ]] --
+-- [[ 1. WINDOW SETUP DENGAN TRANSPARANSI ]] --
 local Window = WindUI:CreateWindow({
-    Title = "AetherScript",
-    Author = "Dev: Farel Destroyer",
+    Title = "AetherScript - Fish It", -- Judul Utama
+    Author = "t.me/FarelModsss",     -- Link Telegram di Sub-Title
     Theme = "Dark",
     Size = UDim2.fromOffset(660, 430),
     Folder = "aetherscript_farel",
-    SideBarWidth = 180,
+    SideBarWidth = 200,
     ScrollBarEnabled = true
 })
 
--- [[ NOTIFIKASI AWAL (SUKSES) ]] --
+-- Efek Background Keren
+Window:SetBackgroundImage("rbxassetid://76527064525832")
+Window:SetBackgroundImageTransparency(0.8) -- Lebih transparan agar estetik
+
+-- [[ NOTIFIKASI SUKSES ]] --
 WindUI:Notify({
     Title = "AetherScript Loaded!",
     Content = "Made by FarelDestroyer. Enjoy!",
@@ -22,122 +26,129 @@ WindUI:Notify({
     Duration = 5
 })
 
--- [[ 2. TABS ]] --
-local InfoTab = Window:Tab({ Title = "Info", Icon = "info" })
-local FishTab = Window:Tab({ Title = "Fishing", Icon = "fish" })
-local TeleportTab = Window:Tab({ Title = "Teleport", Icon = "map-pin" })
-local MiscTab = Window:Tab({ Title = "Misc", Icon = "package" })
+-- [[ 2. EFEK RGB PADA TITLE (FOXNAME STYLE) ]] --
+task.spawn(function()
+    while task.wait() do
+        local hue = tick() % 5 / 5
+        local color = Color3.fromHSV(hue, 1, 1)
+        Window:EditWindow({
+            TitleColor = color -- Membuat judul berubah warna terus-menerus
+        })
+    end
+end)
 
--- [[ 3. INFO TAB ]] --
-InfoTab:Section({ Title = "User Info" })
+-- [[ 3. TABS DECLARATION ]] --
+local InfoTab = Window:Tab({ Title = "Home Info", Icon = "home" })
+local FishTab = Window:Tab({ Title = "Fishing Main", Icon = "fish" })
+local TeleportTab = Window:Tab({ Title = "Teleport", Icon = "map-pin" })
+local MiscTab = Window:Tab({ Title = "Misc & Settings", Icon = "settings" })
+
+-- [[ 4. HOME / INFO TAB ]] --
+InfoTab:Section({ Title = "Status Script" })
 InfoTab:Paragraph({
-    Title = "Welcome, " .. game.Players.LocalPlayer.DisplayName,
-    Desc = "Username: @" .. game.Players.LocalPlayer.Name .. "\nStatus: Active (Full Version)",
-    Image = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. game.Players.LocalPlayer.UserId .. "&width=420&height=420&format=png",
-    ImageSize = 48
+    Title = "AetherScript V1.0 - Premium",
+    Desc = "Status: 🟢 Online\nUser: " .. game.Players.LocalPlayer.DisplayName .. "\nSupport: Farel Destroyer",
+    Image = "rbxassetid://10723415535",
+    ImageSize = 45
 })
 
-InfoTab:Section({ Title = "Developer Support" })
+InfoTab:Section({ Title = "Community" })
 InfoTab:Button({
     Title = "Copy Telegram Link",
-    Desc = "Join community FarelModsss",
+    Desc = "Join t.me/FarelModsss",
     Callback = function()
         setclipboard("https://t.me/FarelModsss")
-        WindUI:Notify({ Title = "Success", Content = "Link copied to clipboard!", Icon = "copy" })
+        WindUI:Notify({ Title = "Copied", Content = "Link Telegram disalin ke Clipboard!", Icon = "copy" })
     end
 })
 
--- [[ 4. FISHING TAB ]] --
-FishTab:Section({ Title = "Main Fishing" })
+-- [[ 5. FISHING TAB (MENU UTAMA) ]] --
+FishTab:Section({ Title = "Main Farm" })
 FishTab:Button({
-    Title = "Execute AetherFishit",
-    Desc = "Auto Shake, Reel & Loot",
+    Title = "Execute Auto Fish",
+    Desc = "Menjalankan script auto fishing lengkap",
     Callback = function()
-        -- Memanggil logic dari file AetherFishit yang kamu punya
         loadstring(game:HttpGet('https://raw.githubusercontent.com/FarelDestroyer/Script/main/AetherFishit.lua'))()
     end
 })
 
-FishTab:Section({ Title = "Water Utility" })
+FishTab:Section({ Title = "Movement Utility" })
 FishTab:Toggle({
     Title = "Walk on Water",
     Value = false,
     Callback = function(state)
         _G.WaterWalk = state
         if state then
-            local part = Instance.new("Part", workspace)
-            part.Name = "AetherPlatform"
-            part.Size = Vector3.new(500, 1, 500)
-            part.Anchored = true
-            part.Transparency = 1
             task.spawn(function()
                 while _G.WaterWalk do
-                    part.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, -3.5, 0)
+                    pcall(function()
+                        local char = game.Players.LocalPlayer.Character
+                        if char and char:FindFirstChild("HumanoidRootPart") then
+                            char.HumanoidRootPart.Velocity = Vector3.new(char.HumanoidRootPart.Velocity.X, 0, char.HumanoidRootPart.Velocity.Z)
+                        end
+                    end)
                     task.wait()
                 end
-                part:Destroy()
             end)
         end
     end
 })
 
--- [[ 5. TELEPORT TAB ]] --
-TeleportTab:Section({ Title = "Quick Teleport" })
-local PlayerDropdown = TeleportTab:Dropdown("Select Player", {}, function(selected)
-    _G.TargetTeleport = selected
+-- [[ 6. TELEPORT TAB ]] --
+TeleportTab:Section({ Title = "Player Teleport" })
+local PlayerDropdown = TeleportTab:Dropdown("Pilih Player", {}, function(selected)
+    _G.SelectedPlayer = selected
 end)
 
-local function UpdateList()
-    local players = {}
+local function RefreshPlayers()
+    local pList = {}
     for _, p in pairs(game.Players:GetPlayers()) do
-        if p ~= game.Players.LocalPlayer then table.insert(players, p.Name) end
+        if p ~= game.Players.LocalPlayer then table.insert(pList, p.Name) end
     end
-    PlayerDropdown:SetOptions(players)
+    PlayerDropdown:SetOptions(pList)
 end
 
+TeleportTab:Button({ Title = "Refresh Player List", Callback = RefreshPlayers })
 TeleportTab:Button({
-    Title = "Refresh Player List",
-    Callback = UpdateList
-})
-
-TeleportTab:Button({
-    Title = "Teleport Now",
+    Title = "Teleport ke Player",
     Callback = function()
-        if _G.TargetTeleport then
-            local target = game.Players:FindFirstChild(_G.TargetTeleport)
+        if _G.SelectedPlayer then
+            local target = game.Players:FindFirstChild(_G.SelectedPlayer)
             if target and target.Character then
                 game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
             end
+        else
+            WindUI:Notify({ Title = "Error", Content = "Pilih player dulu!", Icon = "alert-circle" })
         end
     end
 })
 
--- [[ 6. MISC TAB ]] --
-MiscTab:Section({ Title = "System" })
+-- [[ 7. MISC TAB ]] --
+MiscTab:Section({ Title = "Optimization" })
 MiscTab:Button({
-    Title = "FPS Boost",
-    Desc = "Remove textures to reduce lag",
+    Title = "FPS Boost (Full)",
+    Desc = "Menghapus texture untuk HP kentang",
     Callback = function()
         for _, v in pairs(game.Workspace:GetDescendants()) do
             if v:IsA("Decal") or v:IsA("Texture") then v.Transparency = 1 end
         end
-        WindUI:Notify({ Title = "Performance", Content = "FPS Boost Active!", Icon = "zap" })
+        WindUI:Notify({ Title = "Optimized", Content = "Game lebih ringan sekarang!", Icon = "zap" })
     end
 })
 
-MiscTab:Section({ Title = "Protection" })
+MiscTab:Section({ Title = "Client Settings" })
 MiscTab:Toggle({
-    Title = "Anti-Staff",
+    Title = "Anti-Staff Detector",
     Value = false,
     Callback = function(state)
-        _G.AntiStaff = state
+        _G.StaffCheck = state
         game.Players.PlayerAdded:Connect(function(plr)
-            if _G.AntiStaff and plr:GetRankInGroup(0) > 100 then
-                game.Players.LocalPlayer:Kick("Staff Detected: " .. plr.Name)
+            if _G.StaffCheck and plr:GetRankInGroup(0) > 100 then
+                game.Players.LocalPlayer:Kick("Admin Detected: " .. plr.Name)
             end
         end)
     end
 })
 
--- Init list pemain di dropdown
-UpdateList()
+-- Inisialisasi
+RefreshPlayers()
